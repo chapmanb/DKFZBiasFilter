@@ -8,6 +8,8 @@ DKFZ bias filter looks at two types of artifacts:
    Oxidative (oxoG) damage -- G->T (read 1), C->A (read 2)
    FFPE deamination -- C->T, G->A
 
+Handles both FILTER columns (from DKFZBiasFilter directly) or INFO field `DKFZBias` annotations
+from bcbio.
 
 INFO fields have two values:
   - ACGTNactgnPLUS -- read pairs oriented F1 R2
@@ -37,16 +39,16 @@ def main(filter_vcf, opts):
         damage_filters = set([f.name for f in bcf_in.header.filters.values()
                               if f.description.startswith("Variant allele shows a bias")])
         for rec in bcf_in.fetch():
-            if len(set(rec.filter) & damage_filters) == len(rec.filter):
+            if len(set(rec.filter) & damage_filters) == len(rec.filter) or rec.info.get("DKFZBias"):
                 if len(rec.ref) == 1 and len(rec.alts[0]) == 1:
                     change = "%s->%s" % (rec.ref, rec.alts[0])
-                    if "bPcr" in set(rec.filter):
+                    if "bPcr" in set(rec.filter) or "damage" in rec.info.get("DKFZBias", ""):
                         changes_pcr[change] += 1
                         depths_pcr = damage_support(rec, depths_pcr)
-                    if "bSeq" in set(rec.filter):
+                    if "bSeq" in set(rec.filter) or "strand" in rec.info.get("DKFZBias", ""):
                         changes_seq[change] += 1
                         seqerror_support(rec, depths_seq)
-            elif list(rec.filter) == ["PASS"]:
+            elif list(rec.filter) == ["PASS"] and not rec.info.get("DKFZBias"):
                 depths_pass = pass_support(rec, depths_pass)
     changes = {}
     depths = {}
