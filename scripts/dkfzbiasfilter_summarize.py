@@ -85,8 +85,9 @@ def _organize_changes(changes, opts):
 
 def pass_support(rec, depths):
     summarized = dict(summarize_support(rec))
-    alt_depth = summarized["forward"].get(rec.alts[0], 0) + summarized["reverse"].get(rec.alts[0], 0)
-    depths[alt_depth] += 1
+    if summarized:
+        alt_depth = summarized["forward"].get(rec.alts[0], 0) + summarized["reverse"].get(rec.alts[0], 0)
+        depths[alt_depth] += 1
     return depths
 
 def seqerror_support(rec, depths):
@@ -95,8 +96,9 @@ def seqerror_support(rec, depths):
     Summarize bias of calls between F1/F2 and R1/R2
     """
     summarized = dict(summarize_support(rec))
-    alt_depth = summarized["forward"].get(rec.alts[0], 0) + summarized["reverse"].get(rec.alts[0], 0)
-    depths[alt_depth] += 1
+    if summarized:
+        alt_depth = summarized["forward"].get(rec.alts[0], 0) + summarized["reverse"].get(rec.alts[0], 0)
+        depths[alt_depth] += 1
     return depths
 
 def damage_support(rec, depths):
@@ -105,8 +107,9 @@ def damage_support(rec, depths):
     For damage support, summarize bias of calls between F1/R1 and F2/R2
     """
     summarized = dict(summarize_support(rec))
-    alt_depth = summarized["read1"].get(rec.alts[0], 0) + summarized["read2"].get(rec.alts[0], 0)
-    depths[alt_depth] += 1
+    if summarized:
+        alt_depth = summarized["read1"].get(rec.alts[0], 0) + summarized["read2"].get(rec.alts[0], 0)
+        depths[alt_depth] += 1
     return depths
 
 def summarize_support(rec):
@@ -117,7 +120,7 @@ def summarize_support(rec):
     fields = list(baseorder) + [x.lower() for x in baseorder]
     for (orientation, fwd_key, rev_key) in [("PLUS", "F1", "R2"), ("MINUS", "F2", "R1")]:
         key = baseorder + baseorder.lower() + orientation
-        for i, (base, val) in enumerate(zip(fields, rec.info[key])):
+        for i, (base, val) in enumerate(zip(fields, rec.info.get(key, ""))):
             read_key = fwd_key if i < len(baseorder) else rev_key
             support[read_key][base.upper()] += int(val)
     summarized = []
@@ -127,9 +130,10 @@ def summarize_support(rec):
                             ("reverse", collections.defaultdict(int), ["R1", "R2"])]:
         for base in list("ACGT"):
             for k in keys:
-                if support[k][base] > 0:
+                if support.get(k, {}).get(base, 0) > 0:
                     cur[base] += support[k][base]
-        summarized.append((name, dict(cur)))
+        if len(cur) > 0:
+            summarized.append((name, dict(cur)))
     return summarized
 
 if __name__ == "__main__":
