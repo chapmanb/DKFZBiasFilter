@@ -86,7 +86,7 @@ def _organize_changes(changes, opts):
 def pass_support(rec, depths):
     summarized = dict(summarize_support(rec))
     if summarized:
-        alt_depth = summarized["forward"].get(rec.alts[0], 0) + summarized["reverse"].get(rec.alts[0], 0)
+        alt_depth = summarized.get("forward", {}).get(rec.alts[0], 0) + summarized.get("reverse", {}).get(rec.alts[0], 0)
         depths[alt_depth] += 1
     return depths
 
@@ -97,7 +97,7 @@ def seqerror_support(rec, depths):
     """
     summarized = dict(summarize_support(rec))
     if summarized:
-        alt_depth = summarized["forward"].get(rec.alts[0], 0) + summarized["reverse"].get(rec.alts[0], 0)
+        alt_depth = summarized.get("forward", {}).get(rec.alts[0], 0) + summarized.get("reverse", {}).get(rec.alts[0], 0)
         depths[alt_depth] += 1
     return depths
 
@@ -108,7 +108,7 @@ def damage_support(rec, depths):
     """
     summarized = dict(summarize_support(rec))
     if summarized:
-        alt_depth = summarized["read1"].get(rec.alts[0], 0) + summarized["read2"].get(rec.alts[0], 0)
+        alt_depth = summarized.get("read1", {}).get(rec.alts[0], 0) + summarized.get("read2", {}).get(rec.alts[0], 0)
         depths[alt_depth] += 1
     return depths
 
